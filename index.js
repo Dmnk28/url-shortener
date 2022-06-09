@@ -1,35 +1,46 @@
+///////////////////
+/* Configuration */
+///////////////////
 const express = require('express');
-const app = express();
-const port = 3000;
+const app     = express();
+const port    = 3000;
 
-// use cors so the project is testable by freeCodeCamp
-const cors = require('cors');
+/* Set up Mongoose and Connect mongoDB */
+const connectMongoDB = require('./config/mongoDB');
+const UrlSet         = require('./models/urlSet');
+connectMongoDB();
+
+/* Middleware */
+const checkUrlExistsAlready = require('./middlewares/checkUrlExistsAlready');
+const validateUrls          = require('./middlewares/validateUrls');
+
+/* Handlers */
+const rootHandler     = require('./handlers/rootHandler');
+const faviconHandler  = require('./handlers/faviconHandler');
+const newUrlHandler   = require('./handlers/newUrlHandler');
+const shortUrlHandler = require('./handlers/shortUrlHandler');
+
+/* Use cors so the project is testable by freeCodeCamp */
+const cors     = require('cors');
+const { ppid } = require('node:process');
+
+/////////////
+/* Routing */
+/////////////
 app.use(cors({optionsSuccessStatus: 200}));
+app.use(express.urlencoded({extended: true}));
+app.use(express.json());
+app.use('/public', express.static(__dirname + '/public'));
 
-const publicPath = __dirname + '/public';
-const indexHtmlPath = publicPath + '/index.html';
+app.get('/', rootHandler);
+app.get('/favicon.ico', faviconHandler)
+app.get('/shorturl/:number', shortUrlHandler);
 
-// const loggingMiddleware = (req, res, next) => {
-//   console.log(`Methode: ${req.method}, Pfad ${req.path}, IP: ${req.ip}`);
-//   next();
-// }
+app.post('/shorturl', validateUrls, checkUrlExistsAlready, newUrlHandler);
 
-const rootHandler = (req, res) => {
-  res.sendFile(indexHtmlPath);
-}
-
-const headerHandler = (req, res) => {
-  res.json({
-    ipaddress: req.ip,
-    language: req.headers["accept-language"],
-    software: req.headers["user-agent"]
-  })
-}
-
-app.get('/', /*loggingMiddleware,*/ rootHandler);
-app.use('/public', express.static(publicPath));
-app.get('/api/whoami', headerHandler)
-
+//////////////
+/* Listener */
+//////////////
 app.listen(port, () => {
   console.log(`app listening on port ${port}`)
-})
+});
