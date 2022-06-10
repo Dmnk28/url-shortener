@@ -22,21 +22,21 @@ const shortUrlHandler = require('./handlers/shortUrlHandler');
 
 /* Use cors so the project is testable by freeCodeCamp */
 const cors     = require('cors');
-const { ppid } = require('node:process');
+// const { ppid } = require('node:process');
 
 /////////////
 /* Routing */
 /////////////
-app.use(cors({optionsSuccessStatus: 200}));
+app.use(cors());
 app.use(express.urlencoded({extended: true}));
 app.use(express.json());
 app.use('/public', express.static(__dirname + '/public'));
 
 app.get('/', rootHandler);
 app.get('/favicon.ico', faviconHandler)
-app.get('/shorturl/:number', shortUrlHandler);
+app.get('/api/shorturl/:number', shortUrlHandler);
 
-app.post('/shorturl', validateUrls, checkUrlExistsAlready, newUrlHandler);
+app.post('/api/shorturl', validateUrls, checkUrlExistsAlready, newUrlHandler);
 
 //////////////
 /* Listener */
